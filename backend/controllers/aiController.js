@@ -4,8 +4,13 @@ import Question from "../models/Question.js";
 /**
  * Calls the Google Gemini API (free tier, no credit card needed).
  * Get a free key from https://aistudio.google.com/apikey
+ *
+ * Retries on 503 (model temporarily overloaded) with a short exponential
+ * backoff, since free-tier Gemini occasionally rejects requests during
+ * high-demand spikes even though the key/quota is fine.
  */
-const callGemini = async (prompt) => {
+const callGemini = async (prompt, attempt = 1) => {
+  const MAX_ATTEMPTS = 3;
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
   const response = await fetch(url, {
@@ -16,9 +21,20 @@ const callGemini = async (prompt) => {
     }),
   });
 
+  if (response.status === 503 && attempt < MAX_ATTEMPTS) {
+    const delayMs = attempt * 1500; // 1.5s, then 3s
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+    return callGemini(prompt, attempt + 1);
+  }
+
   if (!response.ok) {
     const errBody = await response.text();
-    throw new Error(`Gemini API error (${response.status}): ${errBody}`);
+    const isOverloaded = response.status === 503;
+    throw new Error(
+      isOverloaded
+        ? "AI_OVERLOADED" // recognizable marker, translated to a friendly message below
+        : `Gemini API error (${response.status}): ${errBody}`
+    );
   }
 
   const data = await response.json();
@@ -58,7 +74,16 @@ Description: ${question.description}
 ${question.codeSnippet ? `Code snippet:\n${question.codeSnippet}` : ""}
 Tags: ${question.tags.join(", ")}`;
 
-  const suggestion = await callGemini(prompt);
+  let suggestion;
+  try {
+    suggestion = await callGemini(prompt);
+  } catch (err) {
+    if (err.message === "AI_OVERLOADED") {
+      res.status(503);
+      throw new Error("The AI hint service is busy right now (free-tier demand spike). Please try again in a minute.");
+    }
+    throw err;
+  }
 
   question.aiSuggestion = { content: suggestion, generatedAt: new Date() };
   await question.save();
