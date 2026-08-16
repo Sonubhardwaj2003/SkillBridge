@@ -70,7 +70,7 @@ const Navbar = () => {
               </div>
 
               <Link to={`/profile/${user._id}`} className="hidden sm:flex items-center gap-2">
-                <Avatar name={user.name} size="sm" />
+                <Avatar name={user.name} avatarUrl={user.avatarUrl} size="sm" />
               </Link>
             </>
           ) : (

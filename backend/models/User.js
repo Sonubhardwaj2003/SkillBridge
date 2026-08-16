@@ -44,6 +44,12 @@ const userSchema = new mongoose.Schema(
         return Math.random().toString(36).substring(2, 10);
       },
     },
+    // URL of the uploaded profile photo (Cloudinary). Empty string = no
+    // photo uploaded yet, in which case the UI falls back to initials.
+    avatarUrl: {
+      type: String,
+      default: "",
+    },
     // Reputation system - core gamification feature
     reputation: {
       type: Number,

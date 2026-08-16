@@ -45,7 +45,7 @@ const Leaderboard = () => {
               <span className={`font-display font-bold w-8 text-center ${rankStyles[idx] || "text-muted"}`}>
                 {idx + 1}
               </span>
-              <Avatar name={u.name} size="md" />
+              <Avatar name={u.name} avatarUrl={u.avatarUrl} size="md" />
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-chalk truncate">{u.name}</p>
                 <p className="text-xs text-muted truncate">{u.college || "SkillBridge Member"}</p>

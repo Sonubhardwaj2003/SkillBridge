@@ -17,6 +17,8 @@ const Profile = () => {
   const [editing, setEditing] = useState(false);
   const [confirmingLogout, setConfirmingLogout] = useState(false);
   const [form, setForm] = useState({ bio: "", college: "", branch: "", tagsInput: "" });
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = React.useRef(null);
 
   const isOwnProfile = currentUser?._id === id;
 
@@ -24,6 +26,37 @@ const Profile = () => {
     logout();
     toast.success("Logged out successfully");
     navigate("/");
+  };
+
+  const handlePhotoSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5MB");
+      return;
+    }
+
+    setUploadingPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append("avatar", file);
+      const { data } = await api.post("/users/me/avatar", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setProfile((prev) => ({ ...prev, avatarUrl: data.avatarUrl }));
+      updateUserInPlace({ avatarUrl: data.avatarUrl });
+      toast.success("Profile photo updated");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to upload photo");
+    } finally {
+      setUploadingPhoto(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const fetchProfile = async () => {
@@ -79,7 +112,33 @@ const Profile = () => {
       {/* Profile header */}
       <div className="card p-6 mb-6">
         <div className="flex items-start gap-4 mb-4">
-          <Avatar name={profile.name} size="lg" />
+          <div className="relative shrink-0">
+            <Avatar name={profile.name} avatarUrl={profile.avatarUrl} size="lg" />
+            {isOwnProfile && (
+              <>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingPhoto}
+                  className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-amber text-ink flex items-center justify-center border-2 border-ink hover:bg-amber-light transition-colors disabled:opacity-60"
+                  aria-label="Change profile photo"
+                  title="Change profile photo"
+                >
+                  {uploadingPhoto ? (
+                    <span className="w-3 h-3 border-2 border-ink border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <span className="text-xs">📷</span>
+                  )}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoSelect}
+                  className="hidden"
+                />
+              </>
+            )}
+          </div>
           <div className="flex-1">
             <h1 className="font-display font-bold text-xl text-chalk">{profile.name}</h1>
             <p className="text-muted text-sm">

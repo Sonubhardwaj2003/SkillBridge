@@ -49,7 +49,7 @@ export const createAnswer = asyncHandler(async (req, res) => {
 
   const populatedAnswer = await Answer.findById(answer._id).populate(
     "author",
-    "name reputation badges avatarSeed"
+    "name reputation badges avatarSeed avatarUrl"
   );
 
   res.status(201).json({ success: true, answer: populatedAnswer });

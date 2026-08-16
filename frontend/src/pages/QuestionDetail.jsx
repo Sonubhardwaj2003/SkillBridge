@@ -32,7 +32,7 @@ const AnswerCard = ({ answer, isQuestionAuthor, onUpvote, onAccept, currentUserI
       )}
       <div className="flex items-center justify-between mt-4">
         <div className="flex items-center gap-2 text-xs text-muted">
-          <Avatar name={answer.author?.name || "?"} size="sm" />
+          <Avatar name={answer.author?.name || "?"} avatarUrl={answer.author?.avatarUrl} size="sm" />
           <span className="text-chalk font-medium">{answer.author?.name}</span>
           <span>· {formatDistanceToNow(new Date(answer.createdAt), { addSuffix: true })}</span>
         </div>
@@ -214,7 +214,7 @@ const QuestionDetail = () => {
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs text-muted">
-            <Avatar name={question.author?.name || "?"} size="sm" />
+            <Avatar name={question.author?.name || "?"} avatarUrl={question.author?.avatarUrl} size="sm" />
             <div>
               <Link
                 to={`/profile/${question.author?._id}`}

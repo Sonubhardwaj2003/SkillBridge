@@ -29,7 +29,7 @@ export const createQuestion = asyncHandler(async (req, res) => {
 
   const populatedQuestion = await Question.findById(question._id).populate(
     "author",
-    "name reputation badges avatarSeed"
+    "name reputation badges avatarSeed avatarUrl"
   );
 
   // --- Real-time doubt-matching ---
@@ -86,7 +86,7 @@ export const getQuestions = asyncHandler(async (req, res) => {
 
   const [questions, total] = await Promise.all([
     Question.find(query)
-      .populate("author", "name reputation badges avatarSeed")
+      .populate("author", "name reputation badges avatarSeed avatarUrl")
       .sort(sortOption)
       .skip(skip)
       .limit(Number(limit)),
@@ -110,7 +110,7 @@ export const getQuestionById = asyncHandler(async (req, res) => {
     req.params.id,
     { $inc: { views: 1 } },
     { new: true }
-  ).populate("author", "name reputation badges avatarSeed college branch");
+  ).populate("author", "name reputation badges avatarSeed avatarUrl college branch");
 
   if (!question) {
     res.status(404);
@@ -118,7 +118,7 @@ export const getQuestionById = asyncHandler(async (req, res) => {
   }
 
   const answers = await Answer.find({ question: question._id })
-    .populate("author", "name reputation badges avatarSeed")
+    .populate("author", "name reputation badges avatarSeed avatarUrl")
     .sort({ isAccepted: -1, createdAt: 1 });
 
   res.json({ success: true, question, answers });

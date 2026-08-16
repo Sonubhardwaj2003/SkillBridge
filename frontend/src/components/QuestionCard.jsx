@@ -45,7 +45,7 @@ const QuestionCard = ({ question }) => {
         </div>
 
         <div className="flex items-center gap-2 text-xs text-muted">
-          <Avatar name={question.author?.name || "?"} size="sm" />
+          <Avatar name={question.author?.name || "?"} avatarUrl={question.author?.avatarUrl} size="sm" />
           <span className="text-chalk font-medium">{question.author?.name}</span>
           <span>·</span>
           <span>{formatDistanceToNow(new Date(question.createdAt), { addSuffix: true })}</span>

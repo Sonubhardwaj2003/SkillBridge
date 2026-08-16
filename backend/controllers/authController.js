@@ -40,6 +40,7 @@ export const registerUser = asyncHandler(async (req, res) => {
       badges: user.badges,
       tags: user.tags,
       role: user.role,
+      avatarUrl: user.avatarUrl,
     },
     token: generateToken(user._id),
   });
@@ -75,6 +76,7 @@ export const loginUser = asyncHandler(async (req, res) => {
       badges: user.badges,
       tags: user.tags,
       role: user.role,
+      avatarUrl: user.avatarUrl,
     },
     token: generateToken(user._id),
   });
