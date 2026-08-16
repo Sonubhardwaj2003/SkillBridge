@@ -1,0 +1,46 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="38%" r="65%">
+      <stop offset="0%" stop-color="#2A2130" />
+      <stop offset="100%" stop-color="#12141C" />
+    </radialGradient>
+    <linearGradient id="amberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFC670" />
+      <stop offset="100%" stop-color="#F2A93B" />
+    </linearGradient>
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="14" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="url(#glow)" />
+
+  <!-- Bridge arc connecting two peer nodes -->
+  <path
+    d="M 108 322 Q 256 178 404 322"
+    fill="none"
+    stroke="url(#amberGrad)"
+    stroke-width="26"
+    stroke-linecap="round"
+    filter="url(#softGlow)"
+  />
+
+  <!-- Left peer node -->
+  <circle cx="108" cy="322" r="46" fill="#12141C" stroke="url(#amberGrad)" stroke-width="14" />
+  <circle cx="108" cy="322" r="14" fill="#F2A93B" />
+
+  <!-- Right peer node (teal = "resolved / helped") -->
+  <circle cx="404" cy="322" r="46" fill="#12141C" stroke="#4FD1C5" stroke-width="14" />
+  <circle cx="404" cy="322" r="14" fill="#4FD1C5" />
+
+  <!-- Spark above the bridge - the "aha" moment of a doubt being solved -->
+  <path
+    d="M256 96 L268 138 L310 148 L268 158 L256 200 L244 158 L202 148 L244 138 Z"
+    fill="url(#amberGrad)"
+  />
+</svg>

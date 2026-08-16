@@ -1,8 +1,8 @@
-# SkillBridge — Peer Learning & Doubt Resolution Platform
+<p align="center">
+  <img src="docs/assets/skillbridge-logo-light-bg.png" alt="SkillBridge logo" width="480" />
+</p>
 
-A full-stack MERN application where students post doubts, get **matched in real time**
-with peers who list matching skills, answer each other's questions, and build
-**reputation** through a StackOverflow-style upvote/accept system.
+A full-stack MERN application where students post doubts, get matched in real time with peers who list matching skills, answer each other's questions, and build reputation through a StackOverflow-style upvote/accept system. Includes AI-powered starter hints (google gemini) for students who want a nudge in the right direction before a human answers.
 
 
 ---
@@ -111,7 +111,7 @@ skillbridge/
     ├── package.json
     └── .env.example
 ```
-
+---
 
 ## Design System
 
