@@ -53,7 +53,7 @@ const Register = () => {
             <input
               required
               className="input-field"
-              placeholder="Sonu Kumar"
+              placeholder="John Doe"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
