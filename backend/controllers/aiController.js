@@ -51,7 +51,7 @@ export const getAISuggestion = asyncHandler(async (req, res) => {
     throw new Error("AI suggestions are not configured on this server (missing GEMINI_API_KEY)");
   }
 
-  const prompt = `You are helping a student who is stuck on a coding/technical doubt on a peer-learning platform called SkillBridge. Give a short, encouraging starter hint (not a full solution) that points them in the right direction and helps them think it through. Keep it under 120 words. Do not solve the entire problem outright — guide them.
+  const prompt = `You are helping a student who is stuck on a coding/technical doubt on a peer-learning platform called SkillBridge. Give a best possible, encouraging starter hint initially (not a full solution) that points them in the right direction and helps them think it through. Keep it under 5000 words. Do not solve the entire problem outright until they have made a genuine attempt — guide them.But if they have already made a genuine attempt, then provide a more detailed hint that nudges them towards the solution. If they are completely stuck, you can provide a more detailed solution. Be encouraging and supportive in your tone.
 
 Question title: ${question.title}
 Description: ${question.description}
