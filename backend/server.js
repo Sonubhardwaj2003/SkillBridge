@@ -1,5 +1,11 @@
+// IMPORTANT: this must be the very first import in the file. ES module imports
+// are all evaluated before any other top-level code runs, so if dotenv.config()
+// happened after other imports (like the routes below, which pull in the
+// Cloudinary config), those modules would read process.env before .env was
+// loaded — causing "Must supply api_key" even with a correct .env file.
+import "dotenv/config";
+
 import express from "express";
-import dotenv from "dotenv";
 import cors from "cors";
 import http from "http";
 import { Server } from "socket.io";
@@ -13,7 +19,6 @@ import questionRoutes from "./routes/questionRoutes.js";
 import answerRoutes from "./routes/answerRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 
-dotenv.config();
 connectDB();
 
 const app = express();
