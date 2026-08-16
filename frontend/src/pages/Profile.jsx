@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import api from "../api/axios.js";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -8,15 +8,23 @@ import TagPill from "../components/TagPill.jsx";
 
 const Profile = () => {
   const { id } = useParams();
-  const { user: currentUser, updateUserInPlace } = useAuth();
+  const navigate = useNavigate();
+  const { user: currentUser, updateUserInPlace, logout } = useAuth();
   const [profile, setProfile] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
+  const [confirmingLogout, setConfirmingLogout] = useState(false);
   const [form, setForm] = useState({ bio: "", college: "", branch: "", tagsInput: "" });
 
   const isOwnProfile = currentUser?._id === id;
+
+  const handleLogout = () => {
+    logout();
+    toast.success("Logged out successfully");
+    navigate("/");
+  };
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -184,6 +192,38 @@ const Profile = () => {
           </Link>
         ))}
       </div>
+      {/* Account settings - only visible to the profile owner */}
+      {isOwnProfile && (
+        <div className="card p-6 mt-6">
+          <h2 className="font-display font-semibold text-base mb-1">Account</h2>
+          <p className="text-muted text-sm mb-4">Signed in on this device.</p>
+
+          {!confirmingLogout ? (
+            <button
+              onClick={() => setConfirmingLogout(true)}
+              className="text-sm font-medium text-coral border border-coral/40 hover:bg-coral/10 transition-colors px-4 py-2 rounded-lg"
+            >
+              Log Out
+            </button>
+          ) : (
+            <div className="flex items-center gap-3">
+              <p className="text-sm text-chalk">Are you sure you want to log out?</p>
+              <button
+                onClick={handleLogout}
+                className="text-sm font-medium bg-coral text-white px-4 py-1.5 rounded-lg hover:bg-coral/90 transition-colors"
+              >
+                Yes, Log Out
+              </button>
+              <button
+                onClick={() => setConfirmingLogout(false)}
+                className="text-sm text-muted hover:text-chalk transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

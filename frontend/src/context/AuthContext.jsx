@@ -16,13 +16,28 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem("skillbridge_token");
 
       if (storedUser && token) {
+        // Restore instantly from localStorage first, so the UI doesn't flash
+        // a "logged out" state while we quietly verify the token in the background.
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch {
+          // corrupted localStorage value - ignore, verification below will clean up
+        }
+
         try {
           const { data } = await api.get("/auth/me");
           setUser(data.user);
-        } catch {
-          localStorage.removeItem("skillbridge_token");
-          localStorage.removeItem("skillbridge_user");
-          setUser(null);
+          localStorage.setItem("skillbridge_user", JSON.stringify(data.user));
+        } catch (err) {
+          // IMPORTANT: only clear the session if the server explicitly says the
+          // token is invalid/expired (401). A network blip, the backend still
+          // starting up, or a temporary CORS hiccup should NOT log the user out —
+          // that was previously forcing a fresh login on almost every reload.
+          if (err.response?.status === 401) {
+            localStorage.removeItem("skillbridge_token");
+            localStorage.removeItem("skillbridge_user");
+            setUser(null);
+          }
         }
       }
       setLoading(false);
