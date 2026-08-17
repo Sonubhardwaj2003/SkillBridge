@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext.jsx";
+import PasswordInput from "../components/PasswordInput.jsx";
 
 const Login = () => {
   const { login } = useAuth();
@@ -43,11 +44,8 @@ const Login = () => {
           </div>
           <div>
             <label className="text-sm text-muted mb-1.5 block">Password</label>
-            <input
-              type="password"
+            <PasswordInput
               required
-              className="input-field"
-              placeholder="••••••••"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
             />

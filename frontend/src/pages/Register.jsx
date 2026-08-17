@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext.jsx";
+import PasswordInput from "../components/PasswordInput.jsx";
 
 const Register = () => {
   const { register } = useAuth();
@@ -53,7 +54,7 @@ const Register = () => {
             <input
               required
               className="input-field"
-              placeholder="John Doe"
+              placeholder="Sonu Kumar"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
@@ -64,18 +65,16 @@ const Register = () => {
               type="email"
               required
               className="input-field"
-              placeholder="abc@gmail.com"
+              placeholder="you@college.edu"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
           </div>
           <div>
             <label className="text-sm text-muted mb-1.5 block">Password</label>
-            <input
-              type="password"
+            <PasswordInput
               required
               minLength={6}
-              className="input-field"
               placeholder="At least 6 characters"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
