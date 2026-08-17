@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import Navbar from "./components/Navbar.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import InstallPrompt from "./components/InstallPrompt.jsx";
 
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
@@ -18,6 +19,7 @@ function App() {
     <div className="min-h-screen bg-ink">
       <Navbar />
       <Toaster position="top-right" />
+      <InstallPrompt />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
