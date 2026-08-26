@@ -166,3 +166,39 @@ export const deleteQuestion = asyncHandler(async (req, res) => {
 
   res.json({ success: true, message: "Question deleted" });
 });
+
+// @desc    Edit a question (author only) - title, description, code, tags
+// @route   PUT /api/questions/:id
+// @access  Private
+export const updateQuestion = asyncHandler(async (req, res) => {
+  const question = await Question.findById(req.params.id);
+  if (!question) {
+    res.status(404);
+    throw new Error("Question not found");
+  }
+
+  if (question.author.toString() !== req.user._id.toString()) {
+    res.status(403);
+    throw new Error("Only the question's author can edit it");
+  }
+
+  const { title, description, codeSnippet, tags } = req.body;
+
+  if (title !== undefined) question.title = title;
+  if (description !== undefined) question.description = description;
+  if (codeSnippet !== undefined) question.codeSnippet = codeSnippet;
+  if (tags !== undefined) {
+    question.tags = tags.map((t) => t.toLowerCase().trim()).filter(Boolean);
+  }
+
+  // Editing intentionally does NOT clear the cached AI hint automatically —
+  // if the edit is meaningful, the author can hit "Regenerate" themselves.
+  await question.save();
+
+  const updated = await Question.findById(question._id).populate(
+    "author",
+    "name reputation badges avatarSeed avatarUrl"
+  );
+
+  res.json({ success: true, question: updated });
+});

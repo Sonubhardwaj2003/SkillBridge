@@ -16,7 +16,11 @@ const AISuggestionCard = ({ questionId, initialSuggestion }) => {
       setSuggestion(data.suggestion);
       setVisible(true);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Couldn't generate an AI hint right now");
+      if (err.code === "ECONNABORTED") {
+        toast.error("The AI hint is taking too long and timed out. Please try again.");
+      } else {
+        toast.error(err.response?.data?.message || "Couldn't generate an AI hint right now");
+      }
     } finally {
       setLoading(false);
     }
