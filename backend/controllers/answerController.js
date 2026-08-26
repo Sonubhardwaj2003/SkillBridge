@@ -147,3 +147,30 @@ export const deleteAnswer = asyncHandler(async (req, res) => {
   await answer.deleteOne();
   res.json({ success: true, message: "Answer deleted" });
 });
+
+// @desc    Report an answer for moderation review
+// @route   POST /api/answers/:id/report
+// @access  Private
+export const reportAnswer = asyncHandler(async (req, res) => {
+  const { reason } = req.body;
+  const answer = await Answer.findById(req.params.id);
+  if (!answer) {
+    res.status(404);
+    throw new Error("Answer not found");
+  }
+
+  if (answer.author.toString() === req.user._id.toString()) {
+    res.status(400);
+    throw new Error("You can't report your own answer");
+  }
+
+  answer.report = {
+    reported: true,
+    reason: reason || "No reason provided",
+    reportedBy: req.user._id,
+    reportedAt: new Date(),
+  };
+  await answer.save();
+
+  res.json({ success: true, message: "Answer reported. An admin will review it." });
+});

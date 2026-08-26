@@ -18,6 +18,7 @@ import authRoutes from "./routes/authRoutes.js";
 import questionRoutes from "./routes/questionRoutes.js";
 import answerRoutes from "./routes/answerRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 connectDB();
 
@@ -51,6 +52,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/questions", questionRoutes);
 app.use("/api/answers", answerRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Error handling (must be last)
 app.use(notFound);

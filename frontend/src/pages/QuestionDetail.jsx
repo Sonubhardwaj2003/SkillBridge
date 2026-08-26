@@ -8,6 +8,7 @@ import { useSocket } from "../context/SocketContext.jsx";
 import Avatar from "../components/Avatar.jsx";
 import TagPill from "../components/TagPill.jsx";
 import AISuggestionCard from "../components/AISuggestionCard.jsx";
+import ReportButton from "../components/ReportButton.jsx";
 
 const statusLabel = {
   open: { text: "Open", className: "text-coral" },
@@ -17,6 +18,7 @@ const statusLabel = {
 
 const AnswerCard = ({ answer, isQuestionAuthor, onUpvote, onAccept, currentUserId }) => {
   const hasUpvoted = answer.upvotes?.includes(currentUserId);
+  const isOwnAnswer = answer.author?._id === currentUserId;
   return (
     <div className={`card p-5 ${answer.isAccepted ? "border-teal shadow-glow" : ""}`}>
       {answer.isAccepted && (
@@ -36,7 +38,7 @@ const AnswerCard = ({ answer, isQuestionAuthor, onUpvote, onAccept, currentUserI
           <span className="text-chalk font-medium">{answer.author?.name}</span>
           <span>· {formatDistanceToNow(new Date(answer.createdAt), { addSuffix: true })}</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => onUpvote(answer._id)}
             className={`text-xs font-medium px-2.5 py-1 rounded-md border transition-colors ${
@@ -55,6 +57,7 @@ const AnswerCard = ({ answer, isQuestionAuthor, onUpvote, onAccept, currentUserI
               Accept
             </button>
           )}
+          {!isOwnAnswer && <ReportButton endpoint={`/answers/${answer._id}/report`} />}
         </div>
       </div>
     </div>
@@ -248,7 +251,7 @@ const QuestionDetail = () => {
               </span>
               <div className="flex items-center gap-3">
                 <span className="text-xs text-muted">{question.views} views</span>
-                {isQuestionAuthor && (
+                {isQuestionAuthor ? (
                   <div className="flex items-center gap-2">
                     <button
                       onClick={startEditing}
@@ -264,6 +267,8 @@ const QuestionDetail = () => {
                       Delete
                     </button>
                   </div>
+                ) : (
+                  isAuthenticated && <ReportButton endpoint={`/questions/${id}/report`} />
                 )}
               </div>
             </div>

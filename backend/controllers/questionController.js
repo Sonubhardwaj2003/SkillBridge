@@ -146,6 +146,33 @@ export const toggleUpvoteQuestion = asyncHandler(async (req, res) => {
   res.json({ success: true, upvotes: question.upvotes.length, upvoted: !alreadyUpvoted });
 });
 
+// @desc    Report a question for moderation review
+// @route   POST /api/questions/:id/report
+// @access  Private
+export const reportQuestion = asyncHandler(async (req, res) => {
+  const { reason } = req.body;
+  const question = await Question.findById(req.params.id);
+  if (!question) {
+    res.status(404);
+    throw new Error("Question not found");
+  }
+
+  if (question.author.toString() === req.user._id.toString()) {
+    res.status(400);
+    throw new Error("You can't report your own question");
+  }
+
+  question.report = {
+    reported: true,
+    reason: reason || "No reason provided",
+    reportedBy: req.user._id,
+    reportedAt: new Date(),
+  };
+  await question.save();
+
+  res.json({ success: true, message: "Question reported. An admin will review it." });
+});
+
 // @desc    Delete a question (author or admin only)
 // @route   DELETE /api/questions/:id
 // @access  Private

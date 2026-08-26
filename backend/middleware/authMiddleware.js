@@ -16,6 +16,14 @@ export const protect = asyncHandler(async (req, res, next) => {
         res.status(401);
         throw new Error("User not found, authorization denied");
       }
+
+      // A banned user's existing token is rejected immediately, instead of
+      // only being blocked the next time they try to log in.
+      if (req.user.isBanned) {
+        res.status(403);
+        throw new Error("Your account has been suspended by an admin");
+      }
+
       next();
     } catch (error) {
       res.status(401);

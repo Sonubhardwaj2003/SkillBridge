@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import Navbar from "./components/Navbar.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import AdminRoute from "./components/AdminRoute.jsx";
 import InstallPrompt from "./components/InstallPrompt.jsx";
 
 import Home from "./pages/Home.jsx";
@@ -12,6 +13,7 @@ import AskQuestion from "./pages/AskQuestion.jsx";
 import QuestionDetail from "./pages/QuestionDetail.jsx";
 import Leaderboard from "./pages/Leaderboard.jsx";
 import Profile from "./pages/Profile.jsx";
+import AdminDashboard from "./pages/AdminDashboard.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
 function App() {
@@ -33,6 +35,14 @@ function App() {
             <ProtectedRoute>
               <AskQuestion />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
           }
         />
         <Route path="*" element={<NotFound />} />

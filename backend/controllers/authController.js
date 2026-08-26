@@ -64,6 +64,11 @@ export const loginUser = asyncHandler(async (req, res) => {
     throw new Error("Invalid email or password");
   }
 
+  if (user.isBanned) {
+    res.status(403);
+    throw new Error("Your account has been suspended by an admin");
+  }
+
   res.json({
     success: true,
     user: {

@@ -65,6 +65,13 @@ const userSchema = new mongoose.Schema(
       enum: ["student", "admin"],
       default: "student",
     },
+    // Set by an admin from the moderation dashboard. A banned user's existing
+    // token stops working immediately (checked in the protect middleware),
+    // not just at their next login.
+    isBanned: {
+      type: Boolean,
+      default: false,
+    },
     badges: {
       type: [String],
       default: [],

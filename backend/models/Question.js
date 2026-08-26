@@ -53,6 +53,15 @@ const questionSchema = new mongoose.Schema(
       content: { type: String, default: "" },
       generatedAt: { type: Date, default: null },
     },
+    // Moderation: any logged-in user (other than the author) can flag a
+    // question. Flagged content surfaces in the admin dashboard's report
+    // queue for review.
+    report: {
+      reported: { type: Boolean, default: false },
+      reason: { type: String, default: "" },
+      reportedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+      reportedAt: { type: Date, default: null },
+    },
   },
   { timestamps: true }
 );

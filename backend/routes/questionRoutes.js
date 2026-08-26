@@ -6,6 +6,7 @@ import {
   toggleUpvoteQuestion,
   deleteQuestion,
   updateQuestion,
+  reportQuestion,
 } from "../controllers/questionController.js";
 import { createAnswer } from "../controllers/answerController.js";
 import { getAISuggestion } from "../controllers/aiController.js";
@@ -18,5 +19,6 @@ router.route("/:id").get(getQuestionById).put(protect, updateQuestion).delete(pr
 router.put("/:id/upvote", protect, toggleUpvoteQuestion);
 router.post("/:id/answers", protect, createAnswer);
 router.post("/:id/ai-suggestion", protect, getAISuggestion);
+router.post("/:id/report", protect, reportQuestion);
 
 export default router;

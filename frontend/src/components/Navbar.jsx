@@ -41,6 +41,11 @@ const Navbar = () => {
           <NavLink to="/leaderboard" className={desktopLinkClass}>
             Leaderboard
           </NavLink>
+          {user?.role === "admin" && (
+            <NavLink to="/admin" className={desktopLinkClass}>
+              Admin
+            </NavLink>
+          )}
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
@@ -122,6 +127,11 @@ const Navbar = () => {
               <NavLink to={`/profile/${user._id}`} className={mobileLinkClass} onClick={closeMobileMenu}>
                 My Profile
               </NavLink>
+              {user?.role === "admin" && (
+                <NavLink to="/admin" className={mobileLinkClass} onClick={closeMobileMenu}>
+                  Admin Dashboard
+                </NavLink>
+              )}
             </>
           ) : (
             <>

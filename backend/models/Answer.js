@@ -31,6 +31,12 @@ const answerSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    report: {
+      reported: { type: Boolean, default: false },
+      reason: { type: String, default: "" },
+      reportedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+      reportedAt: { type: Date, default: null },
+    },
   },
   { timestamps: true }
 );
