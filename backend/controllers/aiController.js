@@ -58,6 +58,23 @@ const callGemini = async (prompt, attempt = 1) => {
   return text;
 };
 
+// Attempts 1-2: a short nudge, doesn't solve the problem outright.
+const buildHintPrompt = (question) => `You are helping a student who is stuck on a coding/technical doubt on a peer-learning platform called SkillBridge. Give a short, encouraging starter hint (not a full solution) that points them in the right direction and helps them think it through. Keep it around 200-300 words. Do not solve the entire problem outright — guide them, ask a leading question if useful, but don't give the complete answer or full working code yet.
+
+Question title: ${question.title}
+Description: ${question.description}
+${question.codeSnippet ? `Code snippet:\n${question.codeSnippet}` : ""}
+Tags: ${question.tags.join(", ")}`;
+
+// Attempt 3 onward: the student has already tried twice and asked again, so
+// give them the real, complete answer instead of another nudge.
+const buildFullAnswerPrompt = (question) => `You are helping a student on a peer-learning platform called SkillBridge. They've already been given a starter hint twice and are asking again, so at this point give them a full, clear, well-explained answer — not just a hint. Explain the concept properly, walk through the reasoning, and include a relevant code example or snippet if the question is code-related. Keep it well-structured (short paragraphs, and a code block if applicable) and aim for roughly 300-1000 words — thorough enough to actually resolve their doubt.
+
+Question title: ${question.title}
+Description: ${question.description}
+${question.codeSnippet ? `Code snippet:\n${question.codeSnippet}` : ""}
+Tags: ${question.tags.join(", ")}`;
+
 // @desc    Generate (or return cached) AI starter-hint for a question
 // @route   POST /api/questions/:id/ai-suggestion
 // @access  Private (question author only)
@@ -90,12 +107,10 @@ export const getAISuggestion = asyncHandler(async (req, res) => {
     throw new Error("AI suggestions are not configured on this server (missing GEMINI_API_KEY)");
   }
 
-  const prompt = `You are helping a student who is stuck on a coding/technical doubt on a peer-learning platform called SkillBridge. Give a short, encouraging starter hint (not a full solution) that points them in the right direction and helps them think it through. Keep it under 120 words. Do not solve the entire problem outright — guide them.
-
-Question title: ${question.title}
-Description: ${question.description}
-${question.codeSnippet ? `Code snippet:\n${question.codeSnippet}` : ""}
-Tags: ${question.tags.join(", ")}`;
+  // 1st and 2nd generation -> short hint. 3rd generation onward -> full answer.
+  const nextGenerationCount = (question.aiSuggestion?.generationCount || 0) + 1;
+  const prompt =
+    nextGenerationCount <= 2 ? buildHintPrompt(question) : buildFullAnswerPrompt(question);
 
   let suggestion;
   try {
@@ -114,8 +129,17 @@ Tags: ${question.tags.join(", ")}`;
     throw err;
   }
 
-  question.aiSuggestion = { content: suggestion, generatedAt: new Date() };
+  question.aiSuggestion = {
+    content: suggestion,
+    generatedAt: new Date(),
+    generationCount: nextGenerationCount,
+  };
   await question.save();
 
-  res.json({ success: true, suggestion, cached: false });
+  res.json({
+    success: true,
+    suggestion,
+    cached: false,
+    isFullAnswer: nextGenerationCount > 2,
+  });
 });

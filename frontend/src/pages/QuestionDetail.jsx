@@ -394,7 +394,11 @@ const QuestionDetail = () => {
           else's doubt. */}
       {isQuestionAuthor && !editing && (
         <div className="mb-6">
-          <AISuggestionCard questionId={id} initialSuggestion={question.aiSuggestion?.content} />
+          <AISuggestionCard
+            questionId={id}
+            initialSuggestion={question.aiSuggestion?.content}
+            initialGenerationCount={question.aiSuggestion?.generationCount || 0}
+          />
         </div>
       )}
 

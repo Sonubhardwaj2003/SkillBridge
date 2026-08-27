@@ -2,10 +2,20 @@ import React, { useState } from "react";
 import toast from "react-hot-toast";
 import api from "../api/axios.js";
 
-const AISuggestionCard = ({ questionId, initialSuggestion }) => {
+/**
+ * Escalating AI help: the first two generations give a short nudge/hint.
+ * From the third generation onward, the backend switches to a fully
+ * explained answer with examples/code, since at that point the student
+ * has already asked twice and just wants the real explanation.
+ */
+const AISuggestionCard = ({ questionId, initialSuggestion, initialGenerationCount = 0 }) => {
   const [suggestion, setSuggestion] = useState(initialSuggestion || "");
   const [loading, setLoading] = useState(false);
   const [visible, setVisible] = useState(!!initialSuggestion);
+  const [generationCount, setGenerationCount] = useState(initialGenerationCount);
+
+  const isFullAnswer = generationCount > 2;
+  const nextIsFullAnswer = generationCount + 1 > 2;
 
   const fetchSuggestion = async (regenerate = false) => {
     setLoading(true);
@@ -15,6 +25,9 @@ const AISuggestionCard = ({ questionId, initialSuggestion }) => {
       );
       setSuggestion(data.suggestion);
       setVisible(true);
+      if (!data.cached) {
+        setGenerationCount((c) => c + 1);
+      }
     } catch (err) {
       if (err.code === "ECONNABORTED") {
         toast.error("The AI hint is taking too long and timed out. Please try again.");
@@ -43,21 +56,29 @@ const AISuggestionCard = ({ questionId, initialSuggestion }) => {
     <div className="card p-5 border-amber/30 bg-amber/5 mb-6">
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-mono font-semibold uppercase tracking-wide text-amber-light flex items-center gap-1.5">
-          <span>✨</span> AI Starter Hint
+          <span>✨</span> {isFullAnswer ? "AI Full Explanation" : "AI Starter Hint"}
         </span>
         <button
           onClick={() => fetchSuggestion(true)}
           disabled={loading}
           className="text-xs text-muted hover:text-amber-light transition-colors disabled:opacity-50"
         >
-          {loading ? "Regenerating..." : "Regenerate"}
+          {loading ? "Generating..." : "Regenerate"}
         </button>
       </div>
       <p className="text-sm text-chalk leading-relaxed whitespace-pre-wrap">{suggestion}</p>
-      <p className="text-xs text-muted mt-3 italic">
-        This is a nudge in the right direction, not a full solution — human answers below are still the
-        real deal.
-      </p>
+      {isFullAnswer ? (
+        <p className="text-xs text-muted mt-3 italic">
+          This is a full explanation since you've asked a couple of times already — human answers below
+          can still add more context.
+        </p>
+      ) : (
+        <p className="text-xs text-muted mt-3 italic">
+          This is a nudge in the right direction, not a full solution — human answers below are still the
+          real deal.
+          {generationCount >= 1 && " Regenerate once more for a fully explained answer with examples."}
+        </p>
+      )}
     </div>
   );
 };
