@@ -27,7 +27,10 @@ const Navbar = () => {
     <nav className="sticky top-0 z-40 bg-ink/90 backdrop-blur-md border-b border-border">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group shrink-0">
-          <span className="w-2.5 h-2.5 rounded-full bg-amber shadow-glow group-hover:animate-pulse-slow" />
+          {/* <span className="w-2.5 h-2.5 rounded-full bg-amber shadow-glow group-hover:animate-pulse-slow" /> */}
+          <span className="block w-8 h-8 rounded-none group-hover:animate-spin-slow">
+            <img src="/favicon.svg" alt="skillBridge" srcset="" />
+          </span>
           <span className="font-display font-bold text-lg text-chalk tracking-tight">
             Skill<span className="text-amber">Bridge</span>
           </span>
