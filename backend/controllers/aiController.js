@@ -1,21 +1,23 @@
 import asyncHandler from "express-async-handler";
 import Question from "../models/Question.js";
 
-const GEMINI_TIMEOUT_MS = 20000; // never let a single attempt hang forever
+const GEMINI_TIMEOUT_MS = 15000; // per-attempt timeout
 
 /**
  * Calls the Google Gemini API (free tier, no credit card needed).
  * Get a free key from https://aistudio.google.com/apikey
  *
- * - Retries on 503 (model temporarily overloaded) with a short backoff.
- * - Aborts and fails fast if Gemini doesn't respond within GEMINI_TIMEOUT_MS,
- *   instead of hanging indefinitely (this was the "waits 3-5 minutes and does
- *   nothing" bug — there was previously no timeout at all).
+ * - Retries on 503 (model temporarily overloaded) up to 4 attempts total,
+ *   with a short growing backoff between them. Google's free tier genuinely
+ *   does return 503 sometimes under load — this isn't always a bug, so we
+ *   give it a few real chances before giving up.
+ * - Aborts and fails fast if a single attempt doesn't respond within
+ *   GEMINI_TIMEOUT_MS, instead of hanging indefinitely.
  * - Recognizes 429 (daily/per-minute free-tier quota used up) as a distinct,
  *   clearly-labeled error instead of a generic failure.
  */
 const callGemini = async (prompt, attempt = 1) => {
-  const MAX_ATTEMPTS = 3;
+  const MAX_ATTEMPTS = 4;
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
   const controller = new AbortController();
@@ -32,16 +34,22 @@ const callGemini = async (prompt, attempt = 1) => {
       signal: controller.signal,
     });
   } catch (err) {
+    clearTimeout(timeoutId);
     if (err.name === "AbortError") {
+      // This single attempt hung - if we have retries left, try again
+      // instead of giving up immediately.
+      if (attempt < MAX_ATTEMPTS) {
+        return callGemini(prompt, attempt + 1);
+      }
       throw new Error("AI_TIMEOUT");
     }
     throw err;
-  } finally {
-    clearTimeout(timeoutId);
   }
+  clearTimeout(timeoutId);
 
   if (response.status === 503 && attempt < MAX_ATTEMPTS) {
-    const delayMs = attempt * 1500; // 1.5s, then 3s
+    // Growing backoff: 1s, 2s, 4s between attempts
+    const delayMs = 1000 * Math.pow(2, attempt - 1);
     await new Promise((resolve) => setTimeout(resolve, delayMs));
     return callGemini(prompt, attempt + 1);
   }
@@ -68,7 +76,7 @@ Tags: ${question.tags.join(", ")}`;
 
 // Attempt 3 onward: the student has already tried twice and asked again, so
 // give them the real, complete answer instead of another nudge.
-const buildFullAnswerPrompt = (question) => `You are helping a student on a peer-learning platform called SkillBridge. They've already been given a starter hint twice and are asking again, so at this point give them a full, clear, well-explained answer — not just a hint. Explain the concept properly, walk through the reasoning, and include a relevant code example or snippet if the question is code-related. Keep it well-structured (short paragraphs, and a code block if applicable) and aim for roughly 300-1000 words — thorough enough to actually resolve their doubt.
+const buildFullAnswerPrompt = (question) => `You are helping a student on a peer-learning platform called SkillBridge. They've already been given a starter hint twice and are asking again, so at this point give them a full, clear, well-explained answer — not just a hint. Explain the concept properly, walk through the reasoning, and include a relevant code example or snippet if the question is code-related. Keep it well-structured (short paragraphs, and a code block if applicable) and aim for roughly 300-500 words — thorough enough to actually resolve their doubt.
 
 Question title: ${question.title}
 Description: ${question.description}
@@ -85,14 +93,11 @@ export const getAISuggestion = asyncHandler(async (req, res) => {
     throw new Error("Question not found");
   }
 
-  // Only the person who asked the question can request an AI hint for it —
-  // other users are here to answer, not to get hints for someone else's doubt.
   if (question.author.toString() !== req.user._id.toString()) {
     res.status(403);
     throw new Error("Only the question's author can request an AI hint for it");
   }
 
-  // Serve cached suggestion unless the client explicitly asks to regenerate
   const forceRegenerate = req.query.regenerate === "true";
   if (question.aiSuggestion?.content && !forceRegenerate) {
     return res.json({
@@ -107,7 +112,6 @@ export const getAISuggestion = asyncHandler(async (req, res) => {
     throw new Error("AI suggestions are not configured on this server (missing GEMINI_API_KEY)");
   }
 
-  // 1st and 2nd generation -> short hint. 3rd generation onward -> full answer.
   const nextGenerationCount = (question.aiSuggestion?.generationCount || 0) + 1;
   const prompt =
     nextGenerationCount <= 2 ? buildHintPrompt(question) : buildFullAnswerPrompt(question);
@@ -118,13 +122,13 @@ export const getAISuggestion = asyncHandler(async (req, res) => {
   } catch (err) {
     res.status(503);
     if (err.message === "AI_OVERLOADED") {
-      throw new Error("The AI hint service is busy right now (free-tier demand spike). Please try again in a minute.");
+      throw new Error("Gemini's free tier is genuinely overloaded right now, even after retrying a few times. This is on Google's end, not this server - please try again shortly.");
     }
     if (err.message === "AI_QUOTA_EXCEEDED") {
       throw new Error("The free AI quota has been used up for now (Gemini's free tier has a daily/per-minute limit). Please try again later — usually resets within a day.");
     }
     if (err.message === "AI_TIMEOUT") {
-      throw new Error("The AI service took too long to respond and timed out. Please try again.");
+      throw new Error("The AI service took too long to respond across multiple retries and timed out. Please try again.");
     }
     throw err;
   }
