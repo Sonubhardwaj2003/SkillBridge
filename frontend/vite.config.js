@@ -7,6 +7,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      // We register the service worker ourselves in main.jsx (so we can add
+      // periodic update-checking for installed apps) - injectRegister:false
+      // stops the plugin from ALSO auto-injecting its own basic register
+      // script, which would double-register.
+      injectRegister: false,
       includeAssets: ["favicon.svg", "favicon.ico", "apple-touch-icon.png"],
       manifest: {
         name: "SkillBridge — Peer Learning & Doubt Resolution",
@@ -28,6 +33,9 @@ export default defineConfig({
         // Don't cache API/socket calls - the app should always hit the live backend,
         // only the static frontend shell gets cached for offline/installed use.
         navigateFallbackDenylist: [/^\/api/, /^\/socket\.io/],
+        // Remove old precached files left over from previous deploys instead
+        // of letting them silently accumulate in storage.
+        cleanupOutdatedCaches: true,
       },
     }),
   ],
